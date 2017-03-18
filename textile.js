@@ -3,6 +3,10 @@ if(typeof require=='undefined')
 if(typeof module=='undefined')
 	var module = { exports:null };
 
+var fs = require('fs');
+var path = require('path');
+var $ = require('cheerio');
+
 function oTextile() {
 	var t = this;
 	var escPats = [];
@@ -143,6 +147,16 @@ function oTextile() {
 		return text;
 	};
 
+	var $doc = null;
+	t.doc = function() {
+		if($doc==null) {
+			var fpath = path.join(__dirname, 'textile.html');
+			var htm = fs.readFileSync(fpath, 'utf8');
+			$doc = $(htm);
+		}
+		return $doc;
+	};
+
 	t.fnMove = function($txt, $fn) {
 		var $f = $txt.find('a.fnlink');
 		var $n = $txt.find('a.fnote');
@@ -154,7 +168,10 @@ function oTextile() {
 			var $fi = $f.eq(i);
 			var $ni = $n.eq(i);
 			var fnRepl = ($x, a)=> {
-				$x.attr(a) = $x.attr(a).replace(/\d+$/,i+1);
+				if(a=='text')
+					$x.html($x.html().replace(/\d+$/,i+1));
+				else
+					$x.attr(a, $x.attr(a).replace(/\d+$/,i+1));
 			};
 			var props = ['href', 'name', 'text'];
 			for(var j = 0;j<props.length;j++){
@@ -163,7 +180,7 @@ function oTextile() {
 			}
 		}
 		var $d = $n.parent();
-		$d.detach()
+		//$d.detach()
 		$fn.append($d);
 	};
 }
