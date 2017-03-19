@@ -101,7 +101,7 @@ function oTextile() {
 		[ /([\w;:,.?!\)_']|&rsquo; *|' *)"(\s|$|\[|-|&mdash;)/ig, '$1&rdquo;$2' ],
 		[ /(^|\s|&ldquo; *|" *)'([\w,.?!\(_])/ig, '$1&lsquo;$2' ],
 		[ /([\w;:,.?!\)_])'(\s|$|\[|&rdquo;|")/ig, '$1&rsquo;$2' ],
-		[ /(\w)'(\w)/g, '$1&rsquo;$2' ],
+		[ /(\w|&\w+;)'(\w|&\w+;|-)/g, '$1&rsquo;$2' ],
 
 		[ /(^|[\s.,:;'"!?()\[\]])(\*\*|__|\?\?|[*_\-+^~%@])(.*?)\2([\s.,:;'"!?()\[\]]|$)/mg, 
 			function(m, op, type, txt, cp) {
@@ -157,11 +157,57 @@ function oTextile() {
 		return $doc;
 	};
 
+	t.tocBuild = function() {
+		var $txt = $doc.find('#htmlout');
+		var $toc = $doc.find('#toc');
+		var $levels = $();
+		for(var i=0;i<arguments.length;i++){
+			var $li = $txt.find(arguments[i]);
+			$li.each((j,e)=> { 
+				$(e).data('level',i+1).attr('id','toc-'+(i+1)+'-'+j); 
+			});
+			$levels = $levels.add($li);
+		}
+		$toc.empty();
+		var cur = [ $toc ];
+		$levels.each((i,e)=> {
+			var $e = $(e);
+			var level = $e.data('level');
+			var $parent = $toc;
+			if(typeof cur[level-1] != 'undefined' && cur[level-1] instanceof $) 
+				var $parent = cur[level-1];
+			if($parent.prop('name')!='ul') {
+				var $ul = $parent.children('ul');
+				if($ul.length>0) $parent = $ul.eq(0);
+				else $parent = $('<ul/>').appendTo($parent);
+			}
+			var txt = $e.text().replace(/^(chapter|section) /i,'')
+				.replace(/([^a-z’']*)([a-z’']+)/gi, function(m,nw,w,i) {
+					//console.log(arguments);
+					if(/^[IVXLC]+$/.test(w)) return m;
+					var w2 = w.toLowerCase();
+					var art = ['and', 'or', 'nor', 'but', 'a', 'an', 'the', 'as', 
+						'at', 'by', 'for', 'in', 'of', 'on', 'per', 'to'];
+					if(i==0 || nw==' - ' || art.indexOf(w2)<0) {
+						//if(!/^[- ]*$/.test(nw)) console.log(nw, w2);
+						w2 = w2[0].toUpperCase() + w2.substr(1);
+					}
+					return nw+w2;
+				});
+			cur[level] = $('<li/>').appendTo($parent).append(
+				$('<a/>').html(txt).attr('href','#'+$e.attr('id')) );
+			//console.log(level, cur.length);
+		});
+		$toc.append('<hr/>');
+		var title = $levels.eq(0).text();
+		$doc.find('title').html(title);
+	};
+
 	t.fnMove = function($txt, $fn) {
 		var $f = $txt.find('a.fnlink');
 		var $n = $txt.find('a.fnote');
 		if($f.length!=$n.length) {
-			alert('footnote problem!')
+			console.log('****** FOOTNOTE MISCOUNT!!!');
 			return;
 		}
 		for(var i=0;i<$f.length;i++) {
