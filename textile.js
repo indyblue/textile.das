@@ -188,7 +188,7 @@ function oTextile() {
 					var w2 = w.toLowerCase();
 					var art = ['and', 'or', 'nor', 'but', 'a', 'an', 'the', 'as', 
 						'at', 'by', 'for', 'in', 'of', 'on', 'per', 'to'];
-					if(i==0 || nw==' - ' || art.indexOf(w2)<0) {
+					if(i==0 || nw==' - ' || nw=='. ' || art.indexOf(w2)<0) {
 						//if(!/^[- ]*$/.test(nw)) console.log(nw, w2);
 						w2 = w2[0].toUpperCase() + w2.substr(1);
 					}
