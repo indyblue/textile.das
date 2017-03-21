@@ -92,20 +92,30 @@ function oTextile() {
 		[ /\\'(&AElig;)/mg, '&#x1fc;' ],
 		[ /\\'(&[^;]*;)/mg, '$1&#x301;' ],
 		[ /\\'({[^}]*})/mg, '$1&#x301;' ],
+		[ /\\S/mg, '&sect;'],
 		
 		[ /<</mg, '&#x0ab;' ],
 		[ />>/mg, '&#x0bb;' ],
 
 		[ /--/mg, '&mdash;' ],
+
+/*
 		[ /(^|\s)"([\w,.?!\(_'])/ig, '$1&ldquo;$2' ],
 		[ /([\w;:,.?!\)_']|&rsquo; *|' *)"(\s|$|\[|-|&mdash;)/ig, '$1&rdquo;$2' ],
 		[ /(^|\s|&ldquo; *|" *)'([\w,.?!\(_])/ig, '$1&lsquo;$2' ],
 		[ /([\w;:,.?!\)_])'(\s|$|\[|&rdquo;|")/ig, '$1&rsquo;$2' ],
+*/
+//*
+		[ /(^|\s|&mdash;|_|%|\])"([\w,.?!\(_'\[%]|&[a-z]+;)/ig, '$1&ldquo;$2' ],
+		[ /([\w;:,.?!\)_'\]%]|&rsquo; *|' *)"(\s|$|\[|-|&mdash;|\[(?:fn)?\d+\]|_|%)/ig, '$1&rdquo;$2' ],
+		[ /(^|\s|&ldquo; *|" *|)'([\w,.?!\(_\[%])/ig, '$1&lsquo;$2' ],
+		[ /([\w;:,.?!\)_\]%])'(\s|$|\[|&rdquo;|")/ig, '$1&rsquo;$2' ],
+//*/
 		[ /(\w|&\w+;)'(\w|&\w+;|-)/g, '$1&rsquo;$2' ],
 
 		[ /(^|[\s.,:;'"!?()\[\]])(\*\*|__|\?\?|[*_\-+^~%@])(.*?)\2([\s.,:;'"!?()\[\]]|$)/mg, 
 			function(m, op, type, txt, cp) {
-				var rx = /(?:[({\[][^)}\]]*[)}\]])+/;
+				var rx = /^(?:[({\[][^)}\]]*[)}\]])+/;
 				var props = '';
 				if(rx.test(txt)) {
 					props = fnProps(txt.match(rx)[0]);
@@ -127,8 +137,8 @@ function oTextile() {
 		[ /(^|[(\s])([VR]\.)( )/mg, '$1<span class="VR">$2</span>$3' ],
 
 
-		[ /\[fn([0-9a-z]*)\]/mig, '<sup><a class="fnlink" name="fnret$1" href="#fn$1">$1</a></sup>' ],
-		[ /^fn([0-9a-z]*)\. (.*)$/gm, '<div><a class="fnote" href="#fnret$1" name="fn$1">$1</a>. $2</div>' ],
+		[ /\[fn([0-9a-z]+)\]/mig, '<sup><a class="fnlink" name="fnret$1" href="#fn$1">$1</a></sup>' ],
+		[ /^fn([0-9a-z]+)\. (.*)$/gm, '<div><a class="fnote" href="#fnret$1" name="fn$1">$1</a>. $2</div>' ],
 		[ /^(p|h\d)([^.]*). (.*)$/gm, function($0,tag,arg,txt) {
 			var props = fnProps(arg);
 			return '<'+tag+props+'>'+txt+'</'+tag+'>';
@@ -208,6 +218,16 @@ function oTextile() {
 		var $n = $txt.find('a.fnote');
 		if($f.length!=$n.length) {
 			console.log('****** FOOTNOTE MISCOUNT!!!');
+			for(var i=0;i<$f.length;i++) {
+				var fi = $f.eq(i).text();
+				var ni = $n.length>i ? $n.eq(i).text() : '';
+				if(fi!=ni) {
+					var fipar = $f.eq(i).closest('p').html();
+					var fisec = $f.eq(i).closest('p').prevAll('h2,h3').first().text();
+					console.log(fisec, fi, ni, fipar);
+					break;
+				}
+			}
 			return;
 		}
 		for(var i=0;i<$f.length;i++) {
