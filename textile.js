@@ -99,21 +99,32 @@ function oTextile() {
 
 		[ /--/mg, '&mdash;' ],
 
-/*
-		[ /(^|\s)"([\w,.?!\(_'])/ig, '$1&ldquo;$2' ],
-		[ /([\w;:,.?!\)_']|&rsquo; *|' *)"(\s|$|\[|-|&mdash;)/ig, '$1&rdquo;$2' ],
-		[ /(^|\s|&ldquo; *|" *)'([\w,.?!\(_])/ig, '$1&lsquo;$2' ],
-		[ /([\w;:,.?!\)_])'(\s|$|\[|&rdquo;|")/ig, '$1&rsquo;$2' ],
-*/
-//*
-		[ /(^|\s|&mdash;|_|%|\])"([\w,.?!\(_'\[%]|&[a-z]+;)/ig, '$1&ldquo;$2' ],
-		[ /([\w;:,.?!\)_'\]%]|&rsquo; *|' *)"(\s|$|\[|-|&mdash;|\[(?:fn)?\d+\]|_|%)/ig, '$1&rdquo;$2' ],
-		[ /(^|\s|&ldquo; *|" *|)'([\w,.?!\(_\[%])/ig, '$1&lsquo;$2' ],
-		[ /([\w;:,.?!\)_\]%])'(\s|$|\[|&rdquo;|")/ig, '$1&rsquo;$2' ],
-//*/
-		[ /(\w|&\w+;)'(\w|&\w+;|-)/g, '$1&rsquo;$2' ],
+		[ /(^|&[a-z]+;|.)"(?=($|&[a-z]+;|.))/mig, function(m, b, a, i) {
+			//console.log(m,0, b, 0, a, 0, i);
+			if(/\s/.test(b) && /\s/.test(a)) return m;
+			var quo = '&ldquo;';
+			var rquo = '&rdquo;';
+			if(/^(&mdash;)$/i.test(b));
+			else if(a=='' || /\s/.test(a)) quo = rquo;
+			else if(/^[a-z;:.,?!'\)s]|&[a-z]+;$/i.test(b)) quo = rquo;
+			else if(/\s|&mdash;/.test(a)) quo = rquo;
 
-		[ /(^|[\s.,:;'"!?()\[\]])(\*\*|__|\?\?|[*_\-+^~%@])(.*?)\2([\s.,:;'"!?()\[\]]|$)/mg, 
+			return b + quo;
+		}],
+		[ /(^|&[a-z]+;|.)'(?=($|&[a-z]+;|.))/mig, function(m, b, a, i) {
+			//console.log(m,0, b, 0, a, 0, i);
+			if(/\s/.test(b) && /\s/.test(a)) return m;
+			var quo = '&lsquo;';
+			var rquo = '&rsquo;';
+			if(/^(&mdash;)$/i.test(b));
+			else if(a=='' || /\s/.test(a)) quo = rquo;
+			else if(/^[a-z;:.,?!'\)s]|&[a-z]+;$/i.test(b)) quo = rquo;
+			else if(/\s|&mdash;/.test(a)) quo = rquo;
+
+			return b + quo;
+		}],
+
+		[ /(^|[\s.,:;'"!?()\[\]])(\*\*|__|\?\?|[*_\-+^~%@])(.*?)\2(?=([\s.,:;'"!?()\[\]]|$))/mg, 
 			function(m, op, type, txt, cp) {
 				var rx = /^(?:[({\[][^)}\]]*[)}\]])+/;
 				var props = '';
