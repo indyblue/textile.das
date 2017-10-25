@@ -173,7 +173,7 @@ function oTextile() {
 		if($doc==null) {
 			var fpath = path.join(__dirname, 'textile.html');
 			var htm = fs.readFileSync(fpath, 'utf8');
-			$doc = $(htm);
+			$doc = $.load(htm)('html');
 		}
 		return $doc;
 	};
